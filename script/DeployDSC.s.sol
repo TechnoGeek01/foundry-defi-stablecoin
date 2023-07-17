@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import {Script} from "forge-std/Script.sol";
 import {DecentralizedStableCoin} from "../src/DecentralizedStableCoin.sol";
@@ -10,7 +10,10 @@ contract DeployDSC is Script {
     address[] public tokenAddresses;
     address[] public pricefeedAddresses;
 
-    function run() external returns (DecentralizedStableCoin, DSCEngine) {
+    function run()
+        external
+        returns (DecentralizedStableCoin, DSCEngine, HelperConfig)
+    {
         HelperConfig config = new HelperConfig();
 
         (
@@ -18,21 +21,22 @@ contract DeployDSC is Script {
             address wbtcUsdPricefeed,
             address weth,
             address wbtc,
-            uint deployerkey
+            uint deployerKey
         ) = config.activeNetworkConfig();
 
         tokenAddresses = [weth, wbtc];
-        priceFeedAddresses = [wethUsdPriceFeed, wbtcUsdPricefeed];
+        pricefeedAddresses = [wethUsdPriceFeed, wbtcUsdPricefeed];
 
-        vm.startBroadcast(deployerkey);
+        vm.startBroadcast(deployerKey);
+
         DecentralizedStableCoin dsc = new DecentralizedStableCoin();
         DSCEngine engine = new DSCEngine(
             tokenAddresses,
-            priceFeedAddresses,
+            pricefeedAddresses,
             address(dsc)
         );
-        dsc.transferOwnership(engine)
+        dsc.transferOwnership(address(engine));
         vm.stopBroadcast();
-        return (dsc,engine)
+        return (dsc, engine, config);
     }
 }
